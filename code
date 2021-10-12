@@ -1,0 +1,205 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+import pandas as pd
+
+
+# In[2]:
+
+
+df = pd.DataFrame(data=[[1,2,0,0],
+                   [2,2,0,0],
+                   [3,2,0,0],
+                   [4,2,0,0],
+                   [5,2,0,0],
+                   [6,2,0,0],
+                   [7,3,0,0],
+                   [8,3,0,0],
+                    [9,3,0,0],
+                    [10,3,0,0],
+                    [11,3,0,0],
+                    [12,3,0,0],
+                    [13,3,0,0],
+                    [14,3,0,0],
+                   [15,4,1,0],
+                   [16,4,1,0],
+                    [17,4,1,0],
+                    [18,4,1,0],
+                    [19,4,1,0],
+                   [20,5,1,1],
+                    [21,5,1,1],
+                    [22,5,1,1],
+                    [23,5,1,1],
+                    [24,4,1,0],
+                        [25,4,1,0],
+                        [26,4,1,0],
+                        [27,4,1,0],
+                        [28,4,1,0],
+                        [29,4,1,0],
+                   [30,4,1,0]],
+             columns = ['a0','a76','a49','a139'])
+
+
+# In[3]:
+
+
+df
+
+
+# In[4]:
+
+
+def generate_state(df):
+    state = 0
+    if (df['a76'] == 2 and df['a49'] == 0):
+        state = 'A'
+    if (df['a76'] == 3 and df['a49'] == 0):
+        state = 'B'
+    if (df['a76'] == 4 and df['a49'] == 1):
+        state = 'C'
+    if (df['a76'] == 5 and df['a139'] == 1):
+        state = 'D'
+    return state
+
+
+# In[5]:
+
+
+df['state'] = df.apply(generate_state, axis=1)
+
+
+# In[6]:
+
+
+df
+
+
+# In[7]:
+
+
+timesteps = df.a0.values
+
+
+# In[8]:
+
+
+state = df.state.values
+
+
+# In[9]:
+
+
+length = len(state)
+is_delet = [0] * length
+current = 0
+while(timesteps[current] - timesteps[0] < 3):
+    is_delet[current] = 1
+    current += 1
+while current < length:
+    if (state[current] != state[current-1]):
+        change_timestep = timesteps[current]
+        is_delet[current] = 1
+        current += 1
+        while (timesteps[current] - change_timestep < 3):
+            is_delet[current] = 1
+            current += 1
+    else:
+        current += 1
+
+
+# In[10]:
+
+
+print(is_delet)
+
+
+# In[11]:
+
+
+from pandas.core.frame import DataFrame
+
+
+# In[12]:
+
+
+c = {'is_delet': is_delet}
+is_delet_df = DataFrame(c)
+is_delet_df
+
+
+# In[13]:
+
+
+data = pd.concat([df, is_delet_df], axis=1)
+data
+
+
+# In[14]:
+
+
+final_data = data[data['is_delet'] == 0].reset_index() 
+final_data
+
+
+# In[15]:
+
+
+final_data = final_data.drop('is_delet',1)
+final_data
+
+
+# In[16]:
+
+
+state = final_data.state.values
+state
+
+
+# In[17]:
+
+
+flag = {'A':1, 'B':1, 'C':1, 'D':1}
+
+
+# In[18]:
+
+
+length = len(state)
+state_new = [0] * length
+state_new[0] = state[0] + str(flag[state[0]])
+
+
+# In[19]:
+
+
+for i in range(1, length):
+    if (state[i] == state[i-1]):
+        state_new[i] = state_new[i-1]
+    else:
+        flag[state[i-1]] += 1
+        state_new[i] = state[i] + str(flag[state[i]])
+print(state_new)
+
+
+# In[20]:
+
+
+c = {'state_partition': state_new}
+state_partition_df = DataFrame(c)
+final_data = pd.concat([final_data, state_partition_df], axis=1)
+
+
+# In[21]:
+
+
+final_data
+
+
+# In[ ]:
+
+
+
+
